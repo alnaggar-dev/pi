@@ -1,0 +1,22 @@
+# .fork/UPSTREAM — the last upstream commit you have PORTED into this fork.
+#
+# This fork integrates upstream commit-by-commit (the upstream-port skill / port.sh),
+# not by merging — so there is no merge ancestry to tell the toolkit how far upstream
+# you are. This pointer is that record. The first non-comment, non-empty line is:
+#
+#     <full-40-char-sha>  [upstream-ref]
+#
+# i.e. the SHA of the last ported upstream commit, optionally followed by the upstream
+# ref it was ported from (e.g. "upstream/main" or "upstream/v2"). The ref lets audit.sh
+# warn when you audit/port against a DIFFERENT ref than the one recorded (a retarget).
+#
+# It is written by ./.fork/port.sh, which updates it IN THE SAME COMMIT as each port
+# and adds a "Fork-Flow-Port: <sha>" trailer (the trailer — not this file — is what the
+# integration gate and audit use to recognize a port). Read by audit.sh (the base for
+# "what is still unported?") and port.sh itself.
+#
+# Leave it empty on a brand-new fork; initialize with `./.fork/port.sh init <sha> [ref]`
+# (which commits a one-time pointer-init carrying a "Fork-Flow-Port-Init: <sha>"
+# trailer). Until then audit.sh falls back to merge-base(HEAD, upstream) with a note.
+# A non-empty SHA that does not resolve is a HARD ERROR (corruption / force-push), not
+# a silent fallback.

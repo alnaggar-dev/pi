@@ -21,3 +21,43 @@
 *.gz binary
 *.woff binary
 *.woff2 binary
+
+# BEGIN fork-flow:gitattributes — managed block; re-run the kit installer to update.
+# Add your OWN merge=ours entries ABOVE this block (outside the markers): updates
+# REPLACE everything between the markers, but any active line above is preserved.
+#
+# merge=ours overrides — LAST RESORT (see your fork memory CLAUDE.md/AGENTS.md, Fork Maintenance).
+#
+# A path listed here keeps YOUR version on every upstream merge and silently
+# hides upstream's changes. Use it only for whole files you intentionally own
+# (branding, generated config). Audit every listed path on each merge, and
+# never use it for one-line edits inside active upstream files — let those
+# conflict so rerere can learn the fix.
+#
+# Requires:  git config merge.ours.driver true   (set during setup)
+# Backstops: ./.fork/brief.sh flags changed merge=ours paths over the range;
+#            ./.fork/verify.sh fails if a listed path matches no tracked file.
+# Globs work (e.g. "*.svg", "assets/**") — both backstops read paths through git.
+#
+# Uncomment and adapt when you actually need one:
+# src/branding/logo.svg     merge=ours
+# src/config/branding.ts    merge=ours
+
+# --- Syntax-aware merge via mergiraf (https://mergiraf.org) — ON by default ----
+# A conservative AST merge driver that clears NOISE conflicts (reordered methods,
+# import churn, formatting) and FALLS BACK to conflict markers when unsure, so it
+# never silently mis-merges. The driver lines below are ACTIVE; they take effect
+# once the per-clone driver is registered by install.sh --setup. With the binary:
+#   git config merge.mergiraf.driver 'mergiraf merge --git %O %A %B -s %S -x %X -y %Y -p %P -l %L'
+# Without it, setup registers a safe Git text-merge fallback. Install Mergiraf with
+# cargo install mergiraf / brew install mergiraf, then re-run setup to activate it.
+# Add/trim the languages your fork edits; full list: mergiraf languages --gitattributes
+# Do NOT route lockfiles or generated files through it — regenerate those instead.
+*.rs    merge=mergiraf
+*.ts    merge=mergiraf
+*.tsx   merge=mergiraf
+*.js    merge=mergiraf
+*.py    merge=mergiraf
+*.go    merge=mergiraf
+*.java  merge=mergiraf
+# END fork-flow:gitattributes

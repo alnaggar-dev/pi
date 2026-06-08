@@ -1,0 +1,6 @@
+# fork-flow kit version — a single integer. Bump it when an already-installed fork
+# needs a refresh: changed scripts/hooks/skills, updated Fork Maintenance prose, or a
+# data migration added to install.sh's run_migrations(). install.sh writes this into the
+# fork on every install; audit.sh surfaces it; `install.sh --check` compares it to the
+# kit's, and `install.sh --update` refreshes a fork to it. Comments here are ignored.
+6

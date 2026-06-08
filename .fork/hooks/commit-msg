@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+# .fork/hooks/commit-msg — keep the registry honest with two NON-BLOCKING warnings
+# (see Fork Maintenance in your CLAUDE.md/AGENTS.md):
+#   1. a `custom:` commit that does not also stage .fork/CHANGES.md, and
+#   2. an ordinary commit that changes files belonging in the registry without
+#      touching .fork/CHANGES.md — i.e. you forgot the fork-change skill. This one
+#      is independent of the `custom:` prefix (forget the skill and you usually
+#      forget the prefix too), and is skipped on merge/revert/cherry-pick commits,
+#      which carry upstream's files rather than your own customization work. We detect
+#      those by their on-disk state (MERGE_HEAD/REVERT_HEAD/CHERRY_PICK_HEAD), not the
+#      commit subject, so a normal commit titled "Merge ..."/"Revert ..." is NOT skipped.
+#      (A reapply — reverting a revert — carries REVERT_HEAD, so it is covered too;
+#      only a hand-typed "Reapply ..." subject with no revert in progress would nag.)
+#   3. a commit that STAGES .fork/UPSTREAM but carries NO Fork-Flow-Port[-Init]
+#      or Fork-Flow-Unport trailer — a malformed port/unport (or a stray `git add`): the
+#      integration gate and audit key off the TRAILER, not the staged file, so an
+#      untrailed pointer bump would slip past them. ./.fork/port.sh writes the trailer.
+#
+# This hook must never fail a commit, so it does not use `set -e` and always
+# exits 0. Enable it once per clone (git config is not carried by copied files):
+#   git config core.hooksPath .fork/hooks          # if you use no other hooks
+#   # ...or, to keep existing hooks, symlink just this one:
+#   ln -s ../../.fork/hooks/commit-msg .git/hooks/commit-msg
+msg_file="${1:-}"
+[ -n "$msg_file" ] && [ -f "$msg_file" ] || exit 0
+cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)" || exit 0
+
+IFS= read -r first_line < "$msg_file" || true
+
+# Did this commit also stage the registry? Both warnings stay silent if so.
+changes_staged=0
+git diff --cached --name-only | grep -Fxq '.fork/CHANGES.md' && changes_staged=1
+
+# Pointer staged in this commit?
+upstream_staged=0
+git diff --cached --name-only | grep -Fxq '.fork/UPSTREAM' && upstream_staged=1
+
+# Does the commit MESSAGE carry a strict Fork-Flow-Port[-Init] or Fork-Flow-Unport
+# trailer? (Parsed from the message file, since no commit exists yet.) The trailer — not
+# the staged pointer file — is what marks a real port / `port.sh revert`; see lib.sh
+# PORT_TRAILER / UNPORT_TRAILER.
+has_port_trailer=0
+has_unport_trailer=0
+if [ -f .fork/lib.sh ]; then
+  # shellcheck source=/dev/null
+  . .fork/lib.sh
+  [ -n "$(port_trailer_sha_stream < "$msg_file")" ] && has_port_trailer=1
+  [ -n "$(unport_trailer_sha_stream < "$msg_file")" ] && has_unport_trailer=1
+fi
+
+# True while finalizing a merge/revert/cherry-pick — those commits carry upstream's
+# files, not your own customizations, so the unregistered-files nag must skip them.
+# A PORT or UNPORT commit also carries upstream's files; we recognize it by its
+# Fork-Flow-Port / Fork-Flow-Unport TRAILER (not merely a staged .fork/UPSTREAM — a
+# stray `git add` of the pointer must NOT silence the nag; warning 3 below catches that).
+special_state() {
+  local r
+  for r in MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD; do
+    git rev-parse --verify --quiet "$r" >/dev/null 2>&1 && return 0
+  done
+  [ "$has_port_trailer" -eq 1 ] && return 0
+  [ "$has_unport_trailer" -eq 1 ] && return 0
+  return 1
+}
+
+# Warning 3: pointer staged but no port/unport trailer — a malformed/accidental port (a
+# real `port.sh revert` stages the pointer too but carries a Fork-Flow-Unport trailer).
+if [ "$upstream_staged" -eq 1 ] && [ "$has_port_trailer" -eq 0 ] && [ "$has_unport_trailer" -eq 0 ]; then
+  printf '\n  fork-flow: this commit stages .fork/UPSTREAM but has NO Fork-Flow-Port trailer.\n' >&2
+  printf '            audit/the gate key off the trailer, not the file — an untrailed pointer bump\n' >&2
+  printf '            slips past them. Use ./.fork/port.sh (it writes the trailer), or add\n' >&2
+  printf '            "Fork-Flow-Port: <upstream-sha>" to the message.\n' >&2
+  printf '            warning only — your commit still goes through.\n\n' >&2
+fi
+
+case "$first_line" in
+  custom:*|custom\(*\):*)
+    # Explicit custom: intent, but the registry was not touched in this commit.
+    if [ "$changes_staged" -eq 0 ]; then
+      printf '\n  fork-flow: this looks like a custom: commit but it does not update .fork/CHANGES.md\n' >&2
+      printf '            register the change (Reason / Touches / Verify) so brief.sh can protect it.\n' >&2
+      printf '            warning only — your commit still goes through.\n\n' >&2
+    fi
+    ;;
+  *)
+    # No custom: prefix. If this commit changes files that belong in the registry
+    # and doesn't touch it, you probably forgot the fork-change skill — point at it.
+    # Reuse lib.sh so the match is identical to audit.sh's scan.
+    if [ "$changes_staged" -eq 0 ] && ! special_state && [ -f .fork/lib.sh ]; then
+      # shellcheck source=/dev/null
+      . .fork/lib.sh
+      # Match against the registry as it will SHIP — the index copy of CHANGES.md
+      # (git show :path), NOT the working tree. Otherwise an edited-but-unstaged
+      # CHANGES.md would hide a gap. git show prints nothing when it isn't in the
+      # index, so reg is empty and every changed file is flagged — biased to warn.
+      reg="$(git show :.fork/CHANGES.md 2>/dev/null | registry_paths_stream)"
+      unreg=""
+      while IFS= read -r f; do
+        [ -z "$f" ] && continue
+        toolkit_path "$f" && continue
+        path_registered "$f" "$reg" && continue
+        unreg="${unreg:+$unreg
+}$f"
+      done < <(git diff --cached --name-only)
+      if [ -n "$unreg" ]; then
+        printf '\n  fork-flow: this commit changes files that no .fork/CHANGES.md entry covers:\n' >&2
+        printf '%s\n' "$unreg" | while IFS= read -r u; do [ -n "$u" ] && printf '              - %s\n' "$u" >&2; done
+        printf '            if these are customizations, run the fork-change skill — it registers them from the diff.\n' >&2
+        printf '            warning only — your commit still goes through.\n\n' >&2
+      fi
+    fi
+    ;;
+esac
+exit 0

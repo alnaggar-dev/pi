@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# .fork/hooks/_merge-gate — shared logic for the pre-commit and pre-merge-commit
+# hooks (see Fork Maintenance in your CLAUDE.md/AGENTS.md). NOT a git hook itself;
+# the two real hooks exec this with their context name as $1. It is the INTEGRATION
+# gate: it fires whenever you finalize an integration of upstream work — a per-commit
+# PORT (the upstream-port skill) or an accidental merge — and proves your
+# customizations survived it.
+#
+#   _merge-gate pre-commit        gate when this commit integrates upstream work:
+#                                 a paused merge (MERGE_HEAD), a conflicted
+#                                 cherry-pick finished with --continue
+#                                 (CHERRY_PICK_HEAD), OR a port/unport commit that stages
+#                                 .fork/UPSTREAM (the clean `cherry-pick --no-commit`
+#                                 path leaves NO CHERRY_PICK_HEAD, so the staged
+#                                 pointer is what makes it gatable — this is the
+#                                 whole reason a port always bumps .fork/UPSTREAM in
+#                                 the same commit), or a port/unport state marker. An
+#                                 ordinary customization commit trips none of these.
+#   _merge-gate pre-merge-commit  always gate — git invokes pre-merge-commit ONLY
+#                                 to finalize a CLEAN auto-merge (the kit ports
+#                                 instead of merging, but this backstops an
+#                                 accidental `git merge`). At that point MERGE_HEAD is
+#                                 not yet written to disk, so we must NOT guard on it
+#                                 (that was the bug this avoids).
+#
+# It runs verify.sh --registry — the merge=ours backstop plus every entry's Verify,
+# with NO build/install — because that is what is most likely to be silently wrong
+# after integrating upstream. The full build is left to you (it can be red mid-port
+# for reasons unrelated to your fork). Escape: git commit/merge --no-verify, or
+# FORK_SKIP_VERIFY=1. Never uses `set -e`: a hook must not crash a commit on an
+# unexpected error.
+[ -n "${FORK_SKIP_VERIFY:-}" ] && exit 0
+ctx="${1:-pre-commit}"
+root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$root" || exit 0
+# pre-commit fires on every commit — only gate one that integrates upstream work:
+# a paused merge, a conflicted cherry-pick being continued, a port/unport commit that
+# stages .fork/UPSTREAM, OR a port/unport left IN PROGRESS by port.sh (its state file on
+# disk). The last one closes the gap where a conflicted `cherry-pick --no-commit` leaves
+# NO CHERRY_PICK_HEAD and does not stage the pointer until `continue`, so a manual
+# `git commit` finishing the port by hand would otherwise slip through ungated.
+# pre-merge-commit is merge-only by definition, so it skips this guard (and MERGE_HEAD is
+# not on disk there yet anyway).
+if [ "$ctx" = pre-commit ]; then
+  integrating=0
+  git rev-parse --quiet --verify MERGE_HEAD >/dev/null 2>&1 && integrating=1
+  git rev-parse --quiet --verify CHERRY_PICK_HEAD >/dev/null 2>&1 && integrating=1
+  git diff --cached --name-only | grep -Fxq '.fork/UPSTREAM' && integrating=1
+  [ -f "$(git rev-parse --git-path fork-flow-port 2>/dev/null)" ] && integrating=1
+  [ -f "$(git rev-parse --git-path fork-flow-unport 2>/dev/null)" ] && integrating=1
+  [ "$integrating" -eq 1 ] || exit 0
+fi
+[ -x .fork/verify.sh ] || exit 0
+if ! .fork/verify.sh --registry; then
+  printf '\n  fork-flow: port/merge gate FAILED — a customization may not have survived this integration.\n' >&2
+  printf '            fix it, then commit again — or bypass with --no-verify\n' >&2
+  printf '            (one-off:  FORK_SKIP_VERIFY=1 git commit / git merge …)\n\n' >&2
+  exit 1
+fi
+exit 0

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# .fork/hooks/pre-commit — fork-flow integration gate (shared logic in _merge-gate).
+# Fires when you `git commit` to finalize an integration of upstream work: a port
+# commit that stages .fork/UPSTREAM (the upstream-port skill), a conflicted
+# cherry-pick finished with --continue (CHERRY_PICK_HEAD), or a paused merge
+# (MERGE_HEAD). It is a no-op for ordinary customization commits.
+# Enable once per clone:  git config core.hooksPath .fork/hooks
+# Escape:  git commit --no-verify   (or FORK_SKIP_VERIFY=1 git commit …)
+g="$(git rev-parse --show-toplevel 2>/dev/null)/.fork/hooks/_merge-gate"
+[ -x "$g" ] && exec "$g" pre-commit
+exit 0

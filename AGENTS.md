@@ -160,3 +160,60 @@ Attribution:
 ## User Override
 
 If the user's instructions conflict with any rule in this document, ask for explicit confirmation before overriding. Only then execute their instructions.
+
+<!-- BEGIN fork-flow:memory — managed block; re-run the kit installer to update. Keep your own notes OUTSIDE these markers (they are overwritten on update). -->
+# Fork Maintenance
+
+This repo is a **personal fork**. Your customizations live on `custom/main` and must survive upstream changes. You never merge upstream — you integrate it **one commit at a time**, porting each upstream commit onto your fork, tracked by `.fork/UPSTREAM` (the SHA of the last upstream commit you ported). Three skills drive the work: **`fork-change`** (register a customization), **`upstream-port`** (port upstream), **`propose-upstream`** (send a change to the author). Read `.fork/CHANGES.md` before changing code or porting.
+
+## Hard rules
+
+- **Never `git pull upstream` or `git merge upstream`.** Fetch, inspect each commit, then **port** it with `./.fork/port.sh` — it cherry-picks `-x --no-commit`, advances `.fork/UPSTREAM` in the *same* commit, and writes a `Fork-Flow-Port: <sha>` trailer (that trailer, not the staged pointer, is what the gate and `audit.sh` trust). Don't hand-roll the cherry-pick.
+- **Lowest-risk integration point wins:** upstream extension point > net-new file you own > small in-place edit > `merge=ours` whole-file override (last resort — it hides upstream changes, including security fixes). This is the one choice you make *while* coding.
+- **Register every customization** in `.fork/CHANGES.md`, in the *same* `custom:` commit (the `commit-msg` hook warns, never blocks, if you forget).
+- **`./.fork/verify.sh` is the gate.** It builds/tests and runs every registry entry's `Verify`, proving your customizations survived; the `pre-commit` hook runs it (`--registry`) on any commit that integrates upstream (bypass: `--no-verify`).
+- **Port small and often** (stop at release tags), and **prune** with `./.fork/audit.sh` — the cheapest customization is one you can delete.
+
+## Adding a customization → run the `fork-change` skill
+
+Code the change first, at the lowest-risk integration point (above). Then run `fork-change` before committing: it reads your diff, drafts the `.fork/CHANGES.md` entry, and runs the gate. Commit code and entry together in one `custom:` commit.
+
+## Porting from upstream → run the `upstream-port` skill
+
+Run `upstream-port` (driven by `./.fork/port.sh`). Once on a fresh fork: `./.fork/port.sh init <sha> [ref]`. Then `./.fork/port.sh next` ports the oldest unported commit; on conflict it stops — inspect with `./.fork/conflict-context.sh <sha> <file>`, re-apply your customization onto upstream's new code, `git add`, then `./.fork/port.sh continue` (or `abort`). Never silently take upstream and drop a custom behavior. Undo the newest port with `./.fork/port.sh revert` — it rewinds `.fork/UPSTREAM` and re-runs the gate, and `next` can re-port later. `./.fork/audit.sh` shows the unported backlog and pointer health.
+
+## Proposing a change upstream → run the `propose-upstream` skill
+
+When a customization is worth contributing, mark its entry `Status: proposed-upstream` and run `propose-upstream`. It cherry-picks only that customization's commit(s) onto `upstream/main` — **never merge `custom/main` into a PR**, which drags every other customization into the author's history — strips fork-flow bookkeeping, verifies in isolation, and opens the PR. Keep the entry `proposed-upstream` until upstream merges it; then retire it at the next port.
+
+## Registry — `.fork/CHANGES.md` (one entry per customization)
+
+Each entry starts with `## custom: <slug>` (exactly two `#`, a space, a non-empty slug — `verify.sh` fails the gate on a malformed heading so a typo can't drop the next entry's `Verify`). Fields:
+
+- **Reason** — one sentence: why it exists.
+- **Touches** — tracked file paths it depends on; `;`-separated (the field also splits on `,`, so keep prose/parenthetical notes out of it), grep-friendly.
+- **Verify** — a command, or `manual: <what to look at>` (`verify.sh` runs the non-`manual:` ones; unmarked prose runs and fails).
+- **Symbols** — `name@path`; add only when a same-signature upstream change could break you *silently* (derive with `lsp references`, or `search` if no language server). Symbols without a `Drift-if` is valid when no honest runtime tripwire exists.
+- **Drift-if** — the condition that would silently break it; when present, `Verify` MUST be a runnable tripwire.
+- **Status** — optional (`proposed-upstream` / `superseded`) so `audit.sh` reminds you to retire it.
+
+## Layout
+
+```
+custom/main         your daily branch          custom/<slug>      larger change, squash-merged
+upstream/main       read-only upstream mirror   pr/<slug>          clean PR branch off upstream/main
+
+.fork/UPSTREAM             pointer: "<sha> <ref>" of the last upstream commit you ported
+.fork/port.sh              the PORT driver: init | list | next | one | revert | continue | abort | status
+.fork/CHANGES.md           registry (Reason, Touches, Verify, Symbols, Drift-if, Status)
+.fork/PORTS.md             per-port journal
+.fork/verify.sh            the gate — --fast | --registry | full (runs every Verify)
+.fork/brief.sh             per-commit risk briefing (rename/delete/glob-aware)
+.fork/conflict-context.sh  per-file conflict hunks + the upstream commit being ported
+.fork/audit.sh             health: fork delta, orphans, unregistered, drop candidates, unported backlog, pointer consistency
+.fork/hooks/               commit-msg reminder + integration gate (pre-commit, pre-merge-commit)
+.gitattributes             merge=ours overrides (last resort) + mergiraf syntax-aware merge (ON by default)
+```
+
+Per-clone setup is one-time and not carried by copied files: run `install.sh --setup` (git config — including the `mergiraf` merge driver — + `gh` fork/remotes + `custom/main`), then set the pointer once with `./.fork/port.sh init <upstream-sha> upstream/<default-branch>`. The `merge=mergiraf` lines in `.gitattributes` are active. When the binary is missing, setup configures Git's normal text merge as a safe fallback; install it (`cargo install mergiraf` / `brew install mergiraf`) and re-run setup to activate syntax-aware merges.
+<!-- END fork-flow:memory -->

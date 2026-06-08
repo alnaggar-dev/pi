@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# .fork/hooks/pre-merge-commit — fork-flow integration gate (shared logic in _merge-gate).
+# The kit ports commit-by-commit instead of merging; this hook is a BACKSTOP for an
+# accidental `git merge`. It fires on a CLEAN `git merge` that auto-creates the merge
+# commit — the case pre-commit does NOT see (git skips pre-commit for an automatic
+# merge commit, and MERGE_HEAD is not yet on disk here). git calls this hook ONLY to
+# finalize a merge, so the gate runs unconditionally. Requires git >= 2.24.
+# Enable once per clone:  git config core.hooksPath .fork/hooks
+# Escape:  git merge --no-verify   (or FORK_SKIP_VERIFY=1 git merge …)
+g="$(git rev-parse --show-toplevel 2>/dev/null)/.fork/hooks/_merge-gate"
+[ -x "$g" ] && exec "$g" pre-merge-commit
+exit 0
