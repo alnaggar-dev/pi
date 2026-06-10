@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+# fork-flow: merge-gate backstop
+.fork/hooks/pre-merge-commit || exit 1

@@ -43,3 +43,8 @@ for file in $STAGED_FILES; do
 done
 
 echo "✅ All pre-commit checks passed!"
+
+# fork-flow integration gate: runs verify.sh --registry when a commit finalizes an
+# upstream integration (staged .fork/UPSTREAM / CHERRY_PICK_HEAD / MERGE_HEAD);
+# a no-op for ordinary commits. Kept LAST so repo checks run first.
+.fork/hooks/pre-commit || exit 1
