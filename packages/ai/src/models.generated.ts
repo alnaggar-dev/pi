@@ -2465,7 +2465,7 @@ export const MODELS = {
 				cacheWrite: 0,
 			},
 			contextWindow: 400000,
-			maxTokens: 272000,
+			maxTokens: 128000,
 		} satisfies Model<"azure-openai-responses">,
 		"gpt-5.1": {
 			id: "gpt-5.1",
@@ -2698,7 +2698,7 @@ export const MODELS = {
 				cacheRead: 0.25,
 				cacheWrite: 0,
 			},
-			contextWindow: 272000,
+			contextWindow: 1050000,
 			maxTokens: 128000,
 		} satisfies Model<"azure-openai-responses">,
 		"gpt-5.4-mini": {
@@ -2770,7 +2770,7 @@ export const MODELS = {
 				cacheRead: 0.5,
 				cacheWrite: 0,
 			},
-			contextWindow: 272000,
+			contextWindow: 1050000,
 			maxTokens: 128000,
 		} satisfies Model<"azure-openai-responses">,
 		"gpt-5.5-pro": {
@@ -7337,7 +7337,7 @@ export const MODELS = {
 				cacheWrite: 0,
 			},
 			contextWindow: 400000,
-			maxTokens: 272000,
+			maxTokens: 128000,
 		} satisfies Model<"openai-responses">,
 		"gpt-5.1": {
 			id: "gpt-5.1",
