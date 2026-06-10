@@ -19,8 +19,11 @@ function base64urlEncode(bytes: Uint8Array): string {
  * Uses Web Crypto API for cross-platform compatibility.
  */
 export async function generatePKCE(): Promise<{ verifier: string; challenge: string }> {
-	// Generate random verifier
-	const verifierBytes = new Uint8Array(32);
+	// Generate random verifier. 96 bytes -> 128 base64url chars (RFC 7636 allows
+	// 43-128). Matches oh-my-pi / the billable Anthropic Claude Code flow; all
+	// shared-helper consumers re-derive their challenge, so the longer verifier is
+	// transparent to legacy Anthropic and OpenAI Codex OAuth.
+	const verifierBytes = new Uint8Array(96);
 	crypto.getRandomValues(verifierBytes);
 	const verifier = base64urlEncode(verifierBytes);
 

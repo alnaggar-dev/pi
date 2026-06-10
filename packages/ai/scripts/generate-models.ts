@@ -224,6 +224,11 @@ function isGoogleThinkingApi(model: Model<any>): boolean {
 	return model.api === "google-generative-ai" || model.api === "google-vertex";
 }
 
+// Claude Fable/Mythos 5 family (matches first-party and Bedrock-style prefixed ids).
+function isAnthropicFableOrMythosModel(modelId: string): boolean {
+	return /claude-(?:fable|mythos)-\d/.test(modelId.toLowerCase());
+}
+
 function isAnthropicAdaptiveThinkingModel(modelId: string): boolean {
 	return (
 		modelId.includes("opus-4-6") ||
@@ -233,12 +238,14 @@ function isAnthropicAdaptiveThinkingModel(modelId: string): boolean {
 		modelId.includes("opus-4-8") ||
 		modelId.includes("opus-4.8") ||
 		modelId.includes("sonnet-4-6") ||
-		modelId.includes("sonnet-4.6")
+		modelId.includes("sonnet-4.6") ||
+		isAnthropicFableOrMythosModel(modelId)
 	);
 }
 
 function isAnthropicTemperatureUnsupportedModel(modelId: string): boolean {
 	const id = modelId.toLowerCase();
+	if (isAnthropicFableOrMythosModel(id)) return true;
 	return id.includes("opus-4-7") || id.includes("opus-4.7") || id.includes("opus-4-8") || id.includes("opus-4.8");
 }
 
@@ -293,6 +300,11 @@ function applyThinkingLevelMetadata(model: Model<any>): void {
 		model.id.includes("opus-4-8") ||
 		model.id.includes("opus-4.8")
 	) {
+		mergeThinkingLevelMap(model, { xhigh: "xhigh" });
+	}
+	if (isAnthropicFableOrMythosModel(model.id)) {
+		// Fable/Mythos 5 expose the genuine five-tier adaptive effort scale
+		// including native "xhigh" (like Opus 4.7+).
 		mergeThinkingLevelMap(model, { xhigh: "xhigh" });
 	}
 	if (model.api === "anthropic-messages" && isAnthropicAdaptiveThinkingModel(model.id)) {
@@ -1374,6 +1386,18 @@ async function generateModels() {
 			candidate.cost.output = 1.9;
 			candidate.cost.cacheRead = 0.119;
 		}
+		// Claude Fable/Mythos 5: Anthropic's /v1/models omits token limits and
+		// pricing, and models.dev lags new releases. Pin authoritative values from
+		// the model card (1M context / 128k output) and pricing docs ($10/$50 per
+		// MTok) — oh-my-pi applyAnthropicCatalogPolicy parity.
+		if (candidate.provider === "anthropic" && isAnthropicFableOrMythosModel(candidate.id)) {
+			candidate.contextWindow = 1000000;
+			candidate.maxTokens = 128000;
+			candidate.cost.input = 10;
+			candidate.cost.output = 50;
+			candidate.cost.cacheRead = 1;
+			candidate.cost.cacheWrite = 12.5;
+		}
 
 	}
 
@@ -1480,6 +1504,49 @@ async function generateModels() {
 			},
 			contextWindow: 1000000,
 			maxTokens: 64000,
+		});
+	}
+
+	// Add missing Claude Fable 5 / Mythos 5: live on the first-party API but not
+	// yet catalogued by models.dev (oh-my-pi ANTHROPIC_CURATED_FALLBACK_MODELS
+	// parity). Deduped behind models.dev once it catches up; metadata is pinned
+	// authoritatively in the override loop above.
+	if (!allModels.some(m => m.provider === "anthropic" && m.id === "claude-fable-5")) {
+		allModels.push({
+			id: "claude-fable-5",
+			name: "Claude Fable 5",
+			api: "anthropic-messages",
+			baseUrl: "https://api.anthropic.com",
+			provider: "anthropic",
+			reasoning: true,
+			input: ["text", "image"],
+			cost: {
+				input: 10,
+				output: 50,
+				cacheRead: 1,
+				cacheWrite: 12.5,
+			},
+			contextWindow: 1000000,
+			maxTokens: 128000,
+		});
+	}
+	if (!allModels.some(m => m.provider === "anthropic" && m.id === "claude-mythos-5")) {
+		allModels.push({
+			id: "claude-mythos-5",
+			name: "Claude Mythos 5",
+			api: "anthropic-messages",
+			baseUrl: "https://api.anthropic.com",
+			provider: "anthropic",
+			reasoning: true,
+			input: ["text", "image"],
+			cost: {
+				input: 10,
+				output: 50,
+				cacheRead: 1,
+				cacheWrite: 12.5,
+			},
+			contextWindow: 1000000,
+			maxTokens: 128000,
 		});
 	}
 

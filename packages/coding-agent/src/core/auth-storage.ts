@@ -304,6 +304,16 @@ export class AuthStorage {
 	}
 
 	/**
+	 * Get the stored OAuth account id for provider metadata.
+	 */
+	getOAuthAccountId(provider: string): string | undefined {
+		const cred = this.data[provider];
+		if (cred?.type !== "oauth") return undefined;
+		const accountId = cred.accountId;
+		return typeof accountId === "string" && accountId.length > 0 ? accountId : undefined;
+	}
+
+	/**
 	 * Set credential for a provider.
 	 */
 	set(provider: string, credential: AuthCredential): void {

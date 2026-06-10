@@ -28,7 +28,7 @@ Use `/logout` to clear credentials. Tokens are stored in `~/.pi/agent/auth.json`
 
 ### Claude Pro/Max
 
-Anthropic subscription auth is active for Claude Pro/Max accounts. Third-party harness usage draws from [extra usage](https://claude.ai/settings/usage) and is billed per token, not against Claude plan limits.
+`/login → Claude Pro/Max` authenticates with your Anthropic subscription and bills `anthropic/*` model usage against your Claude Pro/Max plan.
 
 ### GitHub Copilot
 

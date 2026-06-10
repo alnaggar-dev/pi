@@ -450,6 +450,19 @@ export function resolveCliModel(options: {
 		}
 	}
 
+	// Do not invent ad-hoc Anthropic model ids. The official Messages API rejects
+	// retired aliases such as claude-3-5-haiku-latest; surfacing a local
+	// resolution error is clearer than sending a guaranteed 404 upstream.
+	if (provider === "anthropic") {
+		const display = `${provider}/${pattern}`;
+		return {
+			model: undefined,
+			thinkingLevel: undefined,
+			warning,
+			error: `Model "${display}" not found. Use --list-models to see available Anthropic models.`,
+		};
+	}
+
 	if (provider) {
 		const fallbackModel = buildFallbackModel(provider, pattern, availableModels);
 		if (fallbackModel) {

@@ -300,6 +300,21 @@ describe("resolveCliModel", () => {
 		expect(result.model?.id).toBe("openai/ghost-model");
 	});
 
+	test("does not invent custom ids for unknown Anthropic models", () => {
+		const registry = {
+			getAll: () => allModels,
+		} as unknown as Parameters<typeof resolveCliModel>[0]["modelRegistry"];
+
+		const result = resolveCliModel({
+			cliProvider: "anthropic",
+			cliModel: "claude-3-5-haiku-latest",
+			modelRegistry: registry,
+		});
+
+		expect(result.model).toBeUndefined();
+		expect(result.error).toContain("available Anthropic models");
+	});
+
 	test("returns a clear error when there are no models", () => {
 		const registry = {
 			getAll: () => [],

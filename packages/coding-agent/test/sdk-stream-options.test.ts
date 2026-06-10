@@ -34,12 +34,12 @@ describe("createAgentSession stream options", () => {
 		}
 	});
 
-	function createModel(api: Api): Model<Api> {
+	function createModel(api: Api, provider = "capture-provider"): Model<Api> {
 		return {
 			id: "capture-model",
 			name: "Capture Model",
 			api,
-			provider: "capture-provider",
+			provider,
 			baseUrl: "https://capture.invalid/v1",
 			reasoning: false,
 			input: ["text"],
@@ -149,5 +149,48 @@ describe("createAgentSession stream options", () => {
 		);
 
 		expect(options?.websocketConnectTimeoutMs).toBe(0);
+	});
+
+	it("adds Anthropic OAuth account metadata to provider requests", async () => {
+		const api: Api = "anthropic-messages";
+		const model = createModel(api, "anthropic");
+		const settingsManager = SettingsManager.inMemory({});
+		const authStorage = AuthStorage.create(join(agentDir, "auth.json"));
+		authStorage.set("anthropic", {
+			type: "oauth",
+			access: "sk-ant-oat-test",
+			refresh: "refresh",
+			expires: Date.now() + 60_000,
+			accountId: "acct-123",
+		});
+		const modelRegistry = ModelRegistry.create(authStorage, join(agentDir, "models.json"));
+		let capturedOptions: SimpleStreamOptions | undefined;
+
+		modelRegistry.registerProvider("anthropic", {
+			api,
+			streamSimple: (_model, _context, providerOptions) => {
+				capturedOptions = providerOptions;
+				return createDoneStream(api);
+			},
+		});
+
+		const sessionManager = SessionManager.inMemory(cwd);
+		const { session } = await createAgentSession({
+			cwd,
+			agentDir,
+			model,
+			authStorage,
+			modelRegistry,
+			settingsManager,
+			sessionManager,
+		});
+
+		try {
+			await session.agent.streamFn(model, { messages: [] });
+			expect(capturedOptions?.metadata).toEqual({ account_uuid: "acct-123" });
+		} finally {
+			session.dispose();
+			modelRegistry.unregisterProvider("anthropic");
+		}
 	});
 });

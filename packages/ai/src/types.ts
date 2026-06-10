@@ -464,6 +464,14 @@ export interface AnthropicMessagesCompat {
 	 */
 	supportsTemperature?: boolean;
 	/**
+	 * Whether the model accepts a forced `tool_choice` (`{ type: "any" }` or
+	 * `{ type: "tool", name }`). Claude Fable/Mythos 5 reject forced tool use
+	 * outright ("tool_choice forces tool use is not compatible with this model");
+	 * the request builder downgrades forced choices to `auto` when this is false.
+	 * When unset, auto-detected from the model id. Default: true.
+	 */
+	supportsForcedToolChoice?: boolean;
+	/**
 	 * Whether to force adaptive thinking (`thinking.type: "adaptive"` plus
 	 * `output_config.effort`) regardless of the model id. Built-in models that
 	 * require adaptive thinking set this in generated metadata. Custom

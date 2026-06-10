@@ -1,8 +1,13 @@
 /**
- * Anthropic OAuth flow (Claude Pro/Max)
+ * Anthropic OAuth flow (Claude Pro/Max, platform.claude.com — legacy/non-billable)
  *
  * NOTE: This module uses Node.js http.createServer for the OAuth callback server.
  * It is only intended for CLI use, not browser environments.
+ *
+ * NOTE: This legacy flow intentionally reuses the PKCE verifier as the OAuth
+ * `state` (see loginAnthropic). The billable Claude Code flow in
+ * `anthropic-claude-code.ts` uses a separate random `state` instead — do not
+ * "fix" this one to match.
  */
 
 import type { Server } from "node:http";

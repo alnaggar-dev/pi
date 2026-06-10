@@ -7,8 +7,14 @@
  * - GitHub Copilot
  */
 
-// Anthropic
+// Anthropic (legacy platform.claude.com flow — kept for back-compat)
 export { anthropicOAuthProvider, loginAnthropic, refreshAnthropicToken } from "./anthropic.ts";
+// Anthropic Claude Code subscription (billable, default anthropic OAuth provider)
+export {
+	anthropicClaudeCodeOAuthProvider,
+	loginAnthropicClaudeCode,
+	refreshAnthropicClaudeCode,
+} from "./anthropic-claude-code.ts";
 export * from "./device-code.ts";
 // GitHub Copilot
 export {
@@ -34,13 +40,16 @@ export * from "./types.ts";
 // Provider Registry
 // ============================================================================
 
-import { anthropicOAuthProvider } from "./anthropic.ts";
+import { anthropicClaudeCodeOAuthProvider } from "./anthropic-claude-code.ts";
 import { githubCopilotOAuthProvider } from "./github-copilot.ts";
 import { openaiCodexOAuthProvider } from "./openai-codex.ts";
 import type { OAuthCredentials, OAuthProviderId, OAuthProviderInfo, OAuthProviderInterface } from "./types.ts";
 
 const BUILT_IN_OAUTH_PROVIDERS: OAuthProviderInterface[] = [
-	anthropicOAuthProvider,
+	// Billable Claude Pro/Max subscription flow is the default `anthropic` provider.
+	// The legacy platform.claude.com `anthropicOAuthProvider` stays exported for
+	// back-compat but is no longer the registry default.
+	anthropicClaudeCodeOAuthProvider,
 	githubCopilotOAuthProvider,
 	openaiCodexOAuthProvider,
 ];

@@ -79,7 +79,7 @@ describe("Anthropic forceAdaptiveThinking compat override", () => {
 	it("sends adaptive thinking payload when compat.forceAdaptiveThinking is true", async () => {
 		const payload = await capturePayload(makeCustomModel({ forceAdaptiveThinking: true }), { reasoning: "medium" });
 
-		expect(payload.thinking).toEqual({ type: "adaptive", display: "summarized" });
+		expect(payload.thinking).toEqual({ type: "adaptive" });
 		expect(payload.output_config).toEqual({ effort: "medium" });
 	});
 
@@ -94,10 +94,24 @@ describe("Anthropic forceAdaptiveThinking compat override", () => {
 		expect(payload.output_config).toBeUndefined();
 	});
 
-	it("preserves thinking.type=disabled when reasoning is off regardless of override", async () => {
+	it("omits thinking and pins effort low when reasoning is off on adaptive models", async () => {
+		// Adaptive-only Claude models reject `thinking.type: "disabled"` with a 400;
+		// the builder omits the field and pins the lowest effort instead.
 		const payload = await capturePayload(makeCustomModel({ forceAdaptiveThinking: true }));
 
-		expect(payload.thinking).toEqual({ type: "disabled" });
-		expect(payload.output_config).toBeUndefined();
+		expect(payload.thinking).toBeUndefined();
+		expect(payload.output_config).toEqual({ effort: "low" });
+	});
+
+	it("omits the adaptive display field for bare dated Opus ids", async () => {
+		// `claude-opus-4-20250514` is Opus 4.0 — the minor must not parse as
+		// 20250514 ≥ 4.7 (which would wrongly attach `display`).
+		const model: Model<"anthropic-messages"> = {
+			...makeCustomModel({ forceAdaptiveThinking: true }),
+			id: "claude-opus-4-20250514",
+		};
+		const payload = await capturePayload(model, { reasoning: "medium" });
+
+		expect(payload.thinking).toEqual({ type: "adaptive" });
 	});
 });

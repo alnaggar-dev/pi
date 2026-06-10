@@ -118,18 +118,28 @@ describe("Anthropic thinking disable payload", () => {
 		expect(payload.output_config).toBeUndefined();
 	});
 
-	it("sends thinking.type=disabled for adaptive reasoning models when thinking is off", async () => {
+	it("omits thinking and pins effort low for adaptive reasoning models when thinking is off", async () => {
+		// Adaptive-only Claude models (Opus 4.6+, Sonnet 4.6+, Fable/Mythos 5) reject
+		// `thinking.type: "disabled"` with HTTP 400; the builder omits the field and
+		// pins the lowest effort instead (oh-my-pi parity).
 		const payload = await capturePayload(getModel("anthropic", "claude-opus-4-6"));
 
-		expect(payload.thinking).toEqual({ type: "disabled" });
-		expect(payload.output_config).toBeUndefined();
+		expect(payload.thinking).toBeUndefined();
+		expect(payload.output_config).toEqual({ effort: "low" });
 	});
 
-	it("sends thinking.type=disabled for Claude Opus 4.8 when thinking is off", async () => {
+	it("omits thinking and pins effort low for Claude Opus 4.8 when thinking is off", async () => {
 		const payload = await capturePayload(getModel("anthropic", "claude-opus-4-8"));
 
-		expect(payload.thinking).toEqual({ type: "disabled" });
-		expect(payload.output_config).toBeUndefined();
+		expect(payload.thinking).toBeUndefined();
+		expect(payload.output_config).toEqual({ effort: "low" });
+	});
+
+	it("omits thinking and pins effort low for Claude Fable 5 when thinking is off", async () => {
+		const payload = await capturePayload(getModel("anthropic", "claude-fable-5"));
+
+		expect(payload.thinking).toBeUndefined();
+		expect(payload.output_config).toEqual({ effort: "low" });
 	});
 
 	it("uses adaptive thinking for Claude Opus 4.8 when reasoning is enabled", async () => {
@@ -141,6 +151,13 @@ describe("Anthropic thinking disable payload", () => {
 
 	it("maps xhigh reasoning to effort=xhigh for Claude Opus 4.8", async () => {
 		const payload = await capturePayload(getModel("anthropic", "claude-opus-4-8"), { reasoning: "xhigh" });
+
+		expect(payload.thinking).toEqual({ type: "adaptive", display: "summarized" });
+		expect(payload.output_config).toEqual({ effort: "xhigh" });
+	});
+
+	it("uses adaptive thinking with display and native xhigh effort for Claude Fable 5", async () => {
+		const payload = await capturePayload(getModel("anthropic", "claude-fable-5"), { reasoning: "xhigh" });
 
 		expect(payload.thinking).toEqual({ type: "adaptive", display: "summarized" });
 		expect(payload.output_config).toEqual({ effort: "xhigh" });

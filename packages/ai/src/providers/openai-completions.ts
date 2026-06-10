@@ -714,7 +714,7 @@ function addCacheControlToTextContent(
 ): boolean {
 	const content = message.content;
 	if (typeof content === "string") {
-		if (content.length === 0) {
+		if (content.trim().length === 0) {
 			return false;
 		}
 		message.content = [
@@ -731,9 +731,12 @@ function addCacheControlToTextContent(
 		return false;
 	}
 
+	// Find the last non-empty text part and add cache_control. Empty assistant
+	// content is valid for tool-call replay, but Anthropic/OpenRouter reject
+	// empty text blocks once cache_control turns it into structured content.
 	for (let i = content.length - 1; i >= 0; i--) {
 		const part = content[i];
-		if (part?.type === "text") {
+		if (part?.type === "text" && part.text.trim().length > 0) {
 			const textPart = part as ChatCompletionTextPartWithCacheControl;
 			textPart.cache_control = cacheControl;
 			return true;

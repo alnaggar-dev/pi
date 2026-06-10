@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Anthropic OAuth (Claude Pro/Max subscription) requests now stamp the resolved account UUID into the provider request `metadata` (`account_uuid`) so subscription usage is attributed to the signed-in account.
+- Unknown `anthropic` model ids now fail with a clean "Model not found" error pointing at `--list-models`, instead of minting a custom model id that 404s on the wire — covers the retired `claude-3-5-haiku-latest` / `-20241022` aliases the Messages API no longer serves.
+
+### Removed
+
+- Removed the Anthropic subscription "extra usage" warning and the entire `warnings` settings surface (`WarningSettings`, `settings.warnings`, the Warnings settings submenu, and `getWarnings`/`setWarnings`). Anthropic OAuth now bills `anthropic/*` usage against the Claude Pro/Max subscription, so the warning was stale.
+
 ## [0.79.0] - 2026-06-08
 
 ### New Features

@@ -128,6 +128,17 @@ function getDefaultAgentDir(): string {
 	return getAgentDir();
 }
 
+function withAnthropicAccountMetadata(
+	model: Model<any>,
+	authStorage: AuthStorage,
+	metadata: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+	if (model.provider !== "anthropic") return metadata;
+	const accountId = authStorage.getOAuthAccountId("anthropic");
+	if (!accountId) return metadata;
+	return { account_uuid: accountId, ...(metadata ?? {}) };
+}
+
 /**
  * Create an AgentSession with the specified options.
  *
@@ -318,6 +329,7 @@ export async function createAgentSession(options: CreateAgentSessionOptions = {}
 				websocketConnectTimeoutMs,
 				maxRetries: options?.maxRetries ?? providerRetrySettings.maxRetries,
 				maxRetryDelayMs: options?.maxRetryDelayMs ?? providerRetrySettings.maxRetryDelayMs,
+				metadata: withAnthropicAccountMetadata(model, modelRegistry.authStorage, options?.metadata),
 				headers: mergeProviderAttributionHeaders(
 					model,
 					settingsManager,
