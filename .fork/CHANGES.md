@@ -30,3 +30,10 @@ Symbols: buildParams@packages/ai/src/providers/anthropic.ts; getAnthropicCompat@
 Drift-if: buildParams resumes emitting thinking.type "disabled" for forceAdaptiveThinking models (adaptive-only Claude rejects it with HTTP 400; must omit thinking and pin output_config.effort "low"), buildParams stops downgrading forced tool_choice (any/tool) to auto when compat.supportsForcedToolChoice is false, generate-models stops seeding/pinning claude-fable-5 / claude-mythos-5 (1M context, 128k max tokens, $10/$50 per MTok, forceAdaptiveThinking + supportsTemperature:false + xhigh:"xhigh" thinkingLevelMap), generate-models adds off:null to the Fable/Mythos thinkingLevelMap (upstream 9ccfcd7c does this to drop "off"; this fork deliberately keeps "off" available and maps it to cheap effort-low in buildParams, so supports-xhigh must keep asserting Fable getSupportedThinkingLevels contains "off"), or addCacheControlToTextContent resumes attaching cache_control to empty text parts (Anthropic/OpenRouter 400).
 Verify: (cd packages/ai && node ../../node_modules/vitest/dist/cli.js --run test/anthropic-fable.test.ts test/anthropic-thinking-disable.test.ts test/anthropic-force-adaptive-thinking.test.ts test/anthropic-adaptive-thinking-models.test.ts test/supports-xhigh.test.ts)
 Status: carry
+
+## custom: fork-flow-husky-gate
+Reason: This repo runs git hooks through husky (core.hooksPath=.husky/_), so the fork-flow integration gate under .fork/hooks never fired; chain it into the husky hooks so port/integration commits are actually gated.
+Touches: .husky/pre-commit; .husky/commit-msg; .husky/pre-merge-commit
+Drift-if: an upstream rewrite of .husky/pre-commit drops the appended `.fork/hooks/pre-commit` line (integration commits would silently stop running verify.sh --registry), or the husky commit-msg / pre-merge-commit shims that call `.fork/hooks/*` are removed.
+Verify: grep -q '\.fork/hooks/pre-commit' .husky/pre-commit && grep -q '\.fork/hooks/commit-msg' .husky/commit-msg && grep -q '\.fork/hooks/pre-merge-commit' .husky/pre-merge-commit
+Status: carry
