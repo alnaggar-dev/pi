@@ -1069,6 +1069,10 @@ async function loadModelsDevData(): Promise<Model<any>[]> {
 					}
 				}
 
+				if (api === "openai-completions") {
+					compat = { ...(compat ?? {}), maxTokensField: "max_tokens" };
+				}
+
 				models.push({
 					id: modelId,
 					name: m.name || modelId,
