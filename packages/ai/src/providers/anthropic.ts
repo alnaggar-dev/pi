@@ -1194,7 +1194,10 @@ function buildParams(
 				// reject `thinking.type: "disabled"` with a 400 — adaptive thinking
 				// cannot be switched off. Omit the thinking field (the API defaults to
 				// adaptive) and pin the lowest effort so "thinking off" calls stay cheap
-				// instead of failing the request (oh-my-pi parity).
+				// instead of failing the request (oh-my-pi parity). This supersedes
+				// upstream 9ccfcd7c's `thinkingLevelMap?.off !== null` payload guard: the
+				// forceAdaptiveThinking branch already never emits a disabled payload for
+				// Fable/Mythos, and additionally pins the cheap effort upstream omits.
 				outputConfig = buildOutputConfig("low");
 			} else if (!isOAuthToken) {
 				thinking = { type: "disabled" };

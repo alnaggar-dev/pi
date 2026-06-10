@@ -305,6 +305,12 @@ function applyThinkingLevelMetadata(model: Model<any>): void {
 		// Fable/Mythos 5 expose the genuine five-tier adaptive effort scale
 		// including native "xhigh" (like Opus 4.7+). Covers anthropic-messages and
 		// bedrock-converse-stream ids alike (upstream guards on those two apis).
+		//
+		// We deliberately do NOT set `off: null` here (upstream 9ccfcd7c does, to drop
+		// "off" from Fable's menu). This fork keeps "off" available and reinterprets it
+		// as cheapest adaptive: buildParams omits `thinking` and pins
+		// `output_config.effort: "low"` for forceAdaptiveThinking models (oh-my-pi
+		// parity) — so "off" stays a usable, cheap option instead of disappearing.
 		mergeThinkingLevelMap(model, { xhigh: "xhigh" });
 	}
 	if (model.api === "anthropic-messages" && isAnthropicAdaptiveThinkingModel(model.id)) {

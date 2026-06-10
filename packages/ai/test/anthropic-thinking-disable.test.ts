@@ -138,6 +138,11 @@ describe("Anthropic thinking disable payload", () => {
 	it("omits thinking and pins effort low for Claude Fable 5 when thinking is off", async () => {
 		const payload = await capturePayload(getModel("anthropic", "claude-fable-5"));
 
+		// This fork reinterprets "thinking off" for adaptive-only Fable as cheapest
+		// adaptive: thinking omitted, output_config.effort pinned "low" (oh-my-pi parity).
+		// Upstream 9ccfcd7c instead leaves output_config undefined and drops "off" from the
+		// menu; we deliberately diverge to keep "off" usable and cheap, so upstream's
+		// `output_config` toBeUndefined assertion is intentionally not adopted here.
 		expect(payload.thinking).toBeUndefined();
 		expect(payload.output_config).toEqual({ effort: "low" });
 	});

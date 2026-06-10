@@ -24,6 +24,10 @@ describe("getSupportedThinkingLevels", () => {
 		const model = getModel("anthropic", "claude-fable-5");
 		expect(model).toBeDefined();
 		expect(getSupportedThinkingLevels(model!)).toContain("xhigh");
+		// This fork keeps "off" available for Fable (mapped to cheap effort-low in
+		// buildParams); upstream 9ccfcd7c drops it via thinkingLevelMap off:null. We
+		// intentionally diverge, so the upstream `not.toContain("off")` assertion is omitted.
+		expect(getSupportedThinkingLevels(model!)).toContain("off");
 	});
 
 	it("does not include xhigh for Claude Sonnet 4.5", () => {
@@ -90,5 +94,7 @@ describe("getSupportedThinkingLevels", () => {
 		const model = getModel("amazon-bedrock", "global.anthropic.claude-fable-5");
 		expect(model).toBeDefined();
 		expect(getSupportedThinkingLevels(model!)).toContain("xhigh");
+		// Fork keeps "off" available for Fable (cheap effort-low), unlike upstream 9ccfcd7c.
+		expect(getSupportedThinkingLevels(model!)).toContain("off");
 	});
 });
