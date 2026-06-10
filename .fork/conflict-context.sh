@@ -77,7 +77,13 @@ if [ -n "$ported" ]; then
 	# your recent local history for the file, so you can re-apply the change while
 	# preserving your fork's behavior.
 	printf '%s\n' "-- upstream commit being ported ($(git rev-parse --short "$ported")) --"
-	git show --stat --patch "$ported" -- "$file" || true
+	if [ "$(git rev-list --parents -n1 "$ported" | awk '{print NF-1}')" -gt 1 ]; then
+		# A merge ports as its -m 1 net effect (see port.sh), so show the first-parent
+		# diff — `git show` on a merge prints a combined diff that hides exactly this.
+		git diff --stat --patch "$ported^1" "$ported" -- "$file" || true
+	else
+		git show --stat --patch "$ported" -- "$file" || true
+	fi
 	printf '%s\n' "" "-- your recent local history for $file --"
 	git log --max-count=5 --oneline HEAD -- "$file" || true
 elif git rev-parse --quiet --verify MERGE_HEAD >/dev/null 2>&1; then

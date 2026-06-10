@@ -23,7 +23,10 @@
 #   - ports are CONTIGUOUS: only the OLDEST unported commit may be ported (`one <sha>`
 #     refuses a later one), so the pointer can't jump PAST unported ancestors and bury
 #     them from the backlog/audit;
-#   - upstream MERGE commits are refused (port the commits they brought in, by hand);
+#   - the backlog walks upstream's FIRST-PARENT line; a MERGE commit on it is ported as
+#     its first-parent net effect (cherry-pick -m 1 — exactly what landed on the upstream
+#     mainline, conflict resolutions included). Side-branch commits are never ported
+#     directly: their branch points may predate the pointer, which forward-only refuses;
 #   - on conflict it STOPS and points you at conflict-context.sh, then `continue`.
 # The actual gate (verify.sh --registry) still runs in the pre-commit hook on the final
 # commit; this driver just makes the mechanics correct and hard to get wrong.
@@ -88,7 +91,11 @@ resolve_upstream_ref() { # [arg]
 backlog() { # <upstream-ref>
 	local ref="$1" base
 	base="$(upstream_base "$ref")" || exit $? # hard-fails (3) on a broken pointer
-	git log --no-merges --reverse --format='%H' "$base..$ref"
+	# FIRST-PARENT, merges included: the pointer can only ride upstream's mainline.
+	# A side-branch commit may branch from BEFORE the pointer (a true-merge PR cut from
+	# an older main), so porting it directly would sidestep assert_forward — instead its
+	# content arrives when the MERGE that brought it in is ported as -m 1 (start_port).
+	git log --first-parent --reverse --format='%H' "$base..$ref"
 }
 
 cmd_status() {
@@ -115,10 +122,14 @@ cmd_list() {
 	# the parent never sees, so a broken pointer would print "(up to date)" — the exact
 	# silent lie the pointer contract forbids (cmd_next already captures this way).
 	list="$(backlog "$ref")"
-	printf '== unported backlog (%s), oldest first ==\n' "$ref"
+	printf '== unported backlog (%s), first-parent, oldest first ==\n' "$ref"
 	while IFS= read -r sha; do
 		[ -z "$sha" ] && continue
-		printf '  %s  %s\n' "$(git rev-parse --short "$sha")" "$(git log -1 --format=%s "$sha")"
+		local mark=""
+		if [ "$(git rev-list --parents -n1 "$sha" | awk '{print NF-1}')" -gt 1 ]; then
+			mark=" [merge: $(git rev-list --count --no-merges "$sha^1..$sha") commit(s), ports as -m 1]"
+		fi
+		printf '  %s  %s%s\n' "$(git rev-parse --short "$sha")" "$(git log -1 --format=%s "$sha")" "$mark"
 		n=$((n + 1))
 	done <<EOF
 $list
@@ -200,10 +211,15 @@ start_port() { # <full-sha> <ref>
 	[ "$sha" = "$(upstream_pointer)" ] && die "$sha is already the pointer — nothing to port"
 	require_clean_tree
 	assert_forward "$sha"
-	# Refuse merge commits: a merge can carry conflict-resolution / evil-merge content
-	# that is in neither parent, so it cannot be safely auto-ported. Port its children.
+	# A merge commit on the first-parent line is ported as its -m 1 net effect: the
+	# exact diff the merge landed on the upstream mainline, conflict resolutions and
+	# all. Porting its side-branch commits individually is NOT generally possible —
+	# their branch points may predate the pointer, which assert_forward rightly refuses
+	# as a sidestep. The pointer lands ON the merge, so everything it brought in leaves
+	# the backlog with it.
 	parents="$(git rev-list --parents -n1 "$sha" | awk '{print NF-1}')"
-	[ "$parents" -gt 1 ] && die "$sha is a MERGE commit — port the commits it brought in individually, not the merge"
+	[ "$parents" -gt 1 ] &&
+		note "$(git rev-parse --short "$sha") is a merge — porting its first-parent net effect (-m 1, $(git rev-list --count --no-merges "$sha^1..$sha") commit(s))"
 	# Contiguity: the pointer means "everything up to here is ported", so a port may not
 	# SKIP commits — start_port applies only the OLDEST unported commit on the ref. This is
 	# what stops `one <later-sha>` from advancing the pointer PAST unported ancestors (they
@@ -221,7 +237,11 @@ start_port() { # <full-sha> <ref>
 	# Record state BEFORE touching the tree so abort/continue always have it.
 	printf 'SHA=%s\nREF=%s\n' "$sha" "$ref" >"$state"
 	rc=0
-	git cherry-pick -x --no-commit "$sha" || rc=$?
+	if [ "$parents" -gt 1 ]; then
+		git cherry-pick -x -m 1 --no-commit "$sha" || rc=$?
+	else
+		git cherry-pick -x --no-commit "$sha" || rc=$?
+	fi
 	if [ "$rc" -ne 0 ]; then
 		if git diff --name-only --diff-filter=U | grep -q .; then
 			printf '\nport.sh: CONFLICT porting %s. Files:\n' "$(git rev-parse --short "$sha")" >&2
