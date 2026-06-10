@@ -11,6 +11,10 @@
 
 - Removed the Anthropic subscription "extra usage" warning and the entire `warnings` settings surface (`WarningSettings`, `settings.warnings`, the Warnings settings submenu, and `getWarnings`/`setWarnings`). Anthropic OAuth now bills `anthropic/*` usage against the Claude Pro/Max subscription, so the warning was stale.
 
+### Fixed
+
+- Fixed GitHub release notes and interactive changelog links to resolve package-relative documentation URLs correctly ([#5516](https://github.com/earendil-works/pi/issues/5516)).
+
 ## [0.79.0] - 2026-06-08
 
 ### New Features
