@@ -6410,7 +6410,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai",
 			baseUrl: "https://api.moonshot.ai/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: false,
 			input: ["text"],
 			cost: {
@@ -6428,7 +6428,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai",
 			baseUrl: "https://api.moonshot.ai/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: false,
 			input: ["text"],
 			cost: {
@@ -6446,7 +6446,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai",
 			baseUrl: "https://api.moonshot.ai/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: true,
 			input: ["text"],
 			cost: {
@@ -6464,7 +6464,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai",
 			baseUrl: "https://api.moonshot.ai/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: true,
 			input: ["text"],
 			cost: {
@@ -6482,7 +6482,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai",
 			baseUrl: "https://api.moonshot.ai/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: false,
 			input: ["text"],
 			cost: {
@@ -6500,7 +6500,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai",
 			baseUrl: "https://api.moonshot.ai/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: true,
 			input: ["text", "image"],
 			cost: {
@@ -6518,7 +6518,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai",
 			baseUrl: "https://api.moonshot.ai/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: true,
 			input: ["text", "image"],
 			cost: {
@@ -6538,7 +6538,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai-cn",
 			baseUrl: "https://api.moonshot.cn/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: false,
 			input: ["text"],
 			cost: {
@@ -6556,7 +6556,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai-cn",
 			baseUrl: "https://api.moonshot.cn/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: false,
 			input: ["text"],
 			cost: {
@@ -6574,7 +6574,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai-cn",
 			baseUrl: "https://api.moonshot.cn/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: true,
 			input: ["text"],
 			cost: {
@@ -6592,7 +6592,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai-cn",
 			baseUrl: "https://api.moonshot.cn/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: true,
 			input: ["text"],
 			cost: {
@@ -6610,7 +6610,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai-cn",
 			baseUrl: "https://api.moonshot.cn/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: false,
 			input: ["text"],
 			cost: {
@@ -6628,7 +6628,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai-cn",
 			baseUrl: "https://api.moonshot.cn/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: true,
 			input: ["text", "image"],
 			cost: {
@@ -6646,7 +6646,7 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "moonshotai-cn",
 			baseUrl: "https://api.moonshot.cn/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"thinkingFormat":"deepseek"},
 			reasoning: true,
 			input: ["text", "image"],
 			cost: {
@@ -13259,9 +13259,9 @@ export const MODELS = {
 			api: "openai-completions",
 			provider: "together",
 			baseUrl: "https://api.together.ai/v1",
-			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"supportsLongCacheRetention":false},
+			compat: {"supportsStore":false,"supportsDeveloperRole":false,"supportsReasoningEffort":false,"maxTokensField":"max_tokens","supportsStrictMode":false,"supportsLongCacheRetention":false,"thinkingFormat":"together"},
 			reasoning: true,
-			thinkingLevelMap: {"off":null,"minimal":null,"low":null,"medium":null},
+			thinkingLevelMap: {"minimal":null,"low":null,"medium":null},
 			input: ["text"],
 			cost: {
 				input: 0.3,
