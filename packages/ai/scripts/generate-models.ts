@@ -303,7 +303,8 @@ function applyThinkingLevelMetadata(model: Model<any>): void {
 	}
 	if (isAnthropicFableOrMythosModel(model.id)) {
 		// Fable/Mythos 5 expose the genuine five-tier adaptive effort scale
-		// including native "xhigh" (like Opus 4.7+).
+		// including native "xhigh" (like Opus 4.7+). Covers anthropic-messages and
+		// bedrock-converse-stream ids alike (upstream guards on those two apis).
 		mergeThinkingLevelMap(model, { xhigh: "xhigh" });
 	}
 	if (model.api === "anthropic-messages" && isAnthropicAdaptiveThinkingModel(model.id)) {
