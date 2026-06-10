@@ -28,6 +28,7 @@
   - API-key adaptive requests that carry `output_config.effort` (thinking-on effort and the thinking-off `effort: "low"` pin) now send the `effort-2025-11-24` beta alongside the field (the OAuth Claude Code agent beta list already carries it).
   - The Claude Code fingerprint version no longer drifts across surfaces: the OAuth bootstrap pinned a stale `claude-code/2.1.160` while `/v1/messages` reported 2.1.165. Both now derive from a single `claudeCodeVersion` constant in the new browser-safe `claude-code-version` module.
   - Not ported because pi already behaves correctly: the 64k output clamp is already OAuth-gated (API-key requests keep the model's full ceiling), the Anthropic client already pins `maxRetries: 0` by default, and message-history `cache_control` only targets user-message blocks (never `thinking` blocks).
+- Fixed Amazon Bedrock inference profile ARN region resolution to prefer the ARN's embedded region over `AWS_REGION` ([#5527](https://github.com/earendil-works/pi/pull/5527) by [@AJM10565](https://github.com/AJM10565)).
 - Fixed z.ai thinking-off requests to send the provider's `thinking: { type: "disabled" }` compatibility parameter ([#5330](https://github.com/earendil-works/pi/issues/5330)).
 - Fixed OpenCode completions model metadata to send explicit `maxTokens` as `max_tokens` ([#5331](https://github.com/earendil-works/pi/issues/5331)).
 - Fixed Moonshot Kimi thinking-off requests to send the provider's `thinking: { type: "disabled" }` compatibility parameter ([#5531](https://github.com/earendil-works/pi/issues/5531)).
