@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added `ctx.isProjectTrusted()` for extensions to observe the effective project trust decision, including temporary trust decisions ([#5523](https://github.com/earendil-works/pi/issues/5523)).
+
 ### Changed
 
 - Anthropic OAuth (Claude Pro/Max subscription) requests now stamp the resolved account UUID into the provider request `metadata` (`account_uuid`) so subscription usage is attributed to the signed-in account.
