@@ -1,4 +1,4 @@
-import { type TUI, visibleWidth } from "@earendil-works/pi-tui";
+import { renderFakeCursor, type TUI, visibleWidth } from "@earendil-works/pi-tui";
 import { describe, expect, it, vi } from "vitest";
 import powerlineExtension from "../examples/extensions/powerline-status.ts";
 import type { ExtensionAPI, ExtensionContext } from "../src/core/extensions/index.ts";
@@ -6,6 +6,9 @@ import type { ReadonlyFooterDataProvider } from "../src/core/footer-data-provide
 import { KeybindingsManager } from "../src/core/keybindings.ts";
 import { getEditorTheme, initTheme, theme } from "../src/modes/interactive/theme/theme.ts";
 import { stripAnsi } from "../src/utils/ansi.ts";
+
+// The editor wraps its drawn cursor in zero-width APC markers that stripAnsi keeps; the TUI resolves them later.
+const [FAKE_CURSOR_START, FAKE_CURSOR_END] = renderFakeCursor("|").split("|");
 
 type Handler = (event: unknown, ctx: ExtensionContext) => Promise<void>;
 type CommandHandler = (args: string, ctx: ExtensionContext) => Promise<void>;
@@ -64,7 +67,9 @@ function setup() {
 		if (!factory) throw new Error("no editor installed");
 		const editor = factory(tui, getEditorTheme(), KeybindingsManager.create());
 		editor.setText("hello");
-		return editor.render(width).map(stripAnsi);
+		return editor
+			.render(width)
+			.map((line) => stripAnsi(line.replaceAll(FAKE_CURSOR_START, "").replaceAll(FAKE_CURSOR_END, "")));
 	};
 	const runCommand = (args: string) => {
 		if (!command) throw new Error("command not registered");

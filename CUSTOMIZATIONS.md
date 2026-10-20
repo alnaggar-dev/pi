@@ -43,13 +43,15 @@ true** list to a subagent to verify against the rebased code.
   `ctx.getContextUsage()`, `ctx.thinkingLevel`, `ctx.sessionManager.getEntries()` and
   `getSessionName()`, and the footer data provider's `getGitBranch()` and
   `onBranchChange()`. The theme must keep the `toolPendingBg`, `borderMuted`,
-  `borderAccent` and `border` colors and `getBgAnsi`/`getFgAnsi`.
+  `borderAccent` and `border` colors and `getBgAnsi`/`getFgAnsi`. The test strips the
+  editor's zero-width fake cursor markers, which it derives from the tui's `renderFakeCursor`.
 - **Tripwire paths:** `packages/coding-agent/src/modes/interactive/components/custom-editor.ts`,
   `packages/tui/src/components/editor.ts`,
   `packages/coding-agent/src/modes/interactive/interactive-mode.ts`,
   `packages/coding-agent/src/core/footer-data-provider.ts`,
   `packages/coding-agent/src/core/extensions/types.ts`,
-  `packages/coding-agent/src/modes/interactive/theme/theme.ts`
+  `packages/coding-agent/src/modes/interactive/theme/theme.ts`,
+  `packages/tui/src/tui.ts`
 - **Must still be true:**
   - In `border` layout at width 80, every rendered editor row is exactly 80 columns: a
     `╭…╮` row holding the bar, `│ … │` content rows, and a `╰…╯` row.
@@ -59,6 +61,6 @@ true** list to a subagent to verify against the rebased code.
   - A `CustomEditor` built without `embedWorkingStatus: true` keeps its top border free of
     the working indicator, so the bar is never overwritten by the spinner.
   - Segments drop from the right group first when the bar does not fit.
-  - `npx tsgo --noEmit` reports no errors in the extension file.
+  - `npx tsc --noEmit` (TypeScript 7) reports no errors in the extension file.
 - **Check:** from `packages/coding-agent`:
   `node ../../node_modules/vitest/dist/cli.js --run test/powerline-status-extension.test.ts test/status-indicator.test.ts`
