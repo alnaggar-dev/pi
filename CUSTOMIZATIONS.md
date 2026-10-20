@@ -58,6 +58,7 @@ true** list to a subagent to verify against the rebased code.
     bar row; `/powerline` toggled off restores both the built-in footer and editor.
   - A `CustomEditor` built without `embedWorkingStatus: true` keeps its top border free of
     the working indicator, so the bar is never overwritten by the spinner.
-  - Segments drop from the right group first, then from the left, when the bar does not fit.
+  - Segments drop from the right group first when the bar does not fit.
   - `npx tsgo --noEmit` reports no errors in the extension file.
-- **Check:** `bun test packages/coding-agent/test/status-indicator.test.ts`
+- **Check:** from `packages/coding-agent`:
+  `node ../../node_modules/vitest/dist/cli.js --run test/powerline-status-extension.test.ts test/status-indicator.test.ts`
